@@ -1,8 +1,0 @@
-package com.example.currFair.api.util;
-
-public class Snippet {
-	public static void main(String[] args) {
-		LinksBuilder
-	}
-}
-

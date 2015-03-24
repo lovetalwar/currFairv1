@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="currFair-war">
-        <property name="context-root" value="currFair-war"/>
-        <property name="java-output-path" value="/currFair-war/target/currFair-war-1.0-SNAPSHOT/WEB-INF/classes"/>
-    </wb-module>
-</project-modules>
