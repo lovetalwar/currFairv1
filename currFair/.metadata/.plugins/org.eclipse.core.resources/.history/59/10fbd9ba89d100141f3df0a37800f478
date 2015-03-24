@@ -1,0 +1,45 @@
+<html>
+<head>
+<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+<script>
+function consumeMessage(){
+$.ajax({
+    type: 'POST', 
+    url: '/api/messages/consume',
+    contentType: 'application/json; charset=UTF-8',
+    dataType: 'JSON',
+    data: $("#input").val(),
+    success: function(data) {
+    	$.each(data, function() {
+    		var html="<li>";
+    		  $.each(this, function(k, v) {
+    		    	var key = k;
+    		    	var value = v;
+    		    	html = html + "-" + value;
+    		    
+    		  });
+    		  html = html + "</li>";
+    		  $( "#report" ).val(html);
+    		});
+    },
+    error: function(data) {
+        alert('fail');
+    }
+
+});
+}
+</script>
+</head>
+<body>
+	<div id="consume">
+		<input type="textarea" rows="10" cols="50" id="input" name="inp">
+		</input>
+		<input type="button" value="action" onclick="consumeMessage();"/>
+	</div>
+	<div id="report">
+		 <bold>Total of each currency </bold>
+	</div>
+
+</body>
+
+</html>

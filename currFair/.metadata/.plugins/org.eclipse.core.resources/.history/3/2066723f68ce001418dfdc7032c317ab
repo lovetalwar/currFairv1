@@ -1,0 +1,20 @@
+
+
+package com.example.currFair.api.inject;
+
+import com.google.inject.Binder;
+import com.google.inject.Module;
+import com.londonhydro.orm.inject.OrmGuiceModule;
+
+public class MainGuiceModule implements Module
+{
+
+    @Override public void configure(Binder binder)
+    {
+        // binder.install(new UtilsGuiceModule());
+        binder.install(new OrmGuiceModule());
+        binder.install(new ApiGuiceModule());
+        // binder.install(new JobsGuiceModule());
+        // binder.install(new ApiCacheModule());
+    }
+}

@@ -1,0 +1,37 @@
+package com.londonhydro.api.interceptors;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.ext.Provider;
+
+import org.jboss.resteasy.annotations.interception.Precedence;
+import org.jboss.resteasy.annotations.interception.ServerInterceptor;
+import org.jboss.resteasy.core.ServerResponse;
+import org.jboss.resteasy.spi.interception.PostProcessInterceptor;
+
+import com.londonhydro.utils.toolbox.HttpUtils;
+
+/**
+ * Interceptor used to add http headers to the response object.
+ * 
+ * @author edovale
+ *
+ */
+@Provider
+@ServerInterceptor
+@Precedence(value="HEADER_DECORATOR")
+public class ResponseHeadersInterceptor implements PostProcessInterceptor
+{
+	@Inject @Named("londonhydro.api.allowed.origins")
+	private String ALLOWED_ORIGINS;
+	
+	@Context
+	private HttpServletRequest request;
+	
+	@Override
+	public void postProcess(ServerResponse response) {
+	    HttpUtils.addCORSHeaders(request, response, ALLOWED_ORIGINS);
+	}
+}

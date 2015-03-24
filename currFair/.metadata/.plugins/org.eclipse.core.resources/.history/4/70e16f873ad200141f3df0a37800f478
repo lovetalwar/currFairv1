@@ -1,0 +1,64 @@
+
+package com.example.currFair.api.dao.impl;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
+
+import com.example.currFair.api.dao.MessageDAO;
+import com.example.currFair.api.manager.MessageManager;
+import com.example.currFair.api.model.TradeMessage;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Query;
+
+
+public class MessageDAOImpl extends AbstractDAO implements MessageDAO
+{
+
+	public static final String EntityKey =	"TradeMessage";
+
+    public void  saveMessages(List<TradeMessage> tradeMessages)
+    {
+    	for (TradeMessage tradeMessage : tradeMessages) {
+    		//Key messageKey = KeyFactory.createKey( EntityKey,);	    	    
+    	    Entity messageEntity = new Entity("TradeMessage");
+    	    messageEntity.setProperty("userId", tradeMessage.getUserId());
+    	    messageEntity.setProperty("amountBuy", tradeMessage.getAmountBuy());
+    	    messageEntity.setProperty("amountSell", tradeMessage.getAmountSell());
+    	    messageEntity.setProperty("currencyFrom", tradeMessage.getCurrencyFrom());
+    	    messageEntity.setProperty("currencyTo", tradeMessage.getCurrencyTo());
+    	    messageEntity.setProperty("originatingCountry", tradeMessage.getOriginatingCountry());
+    	    messageEntity.setProperty("rate", tradeMessage.getRate());
+    	    messageEntity.setProperty("timePlaced", tradeMessage.getTimePlaced());
+    	    messageEntity.setProperty("crtDate", Calendar.getInstance().getTime());
+    	    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    	    datastore.put(messageEntity);
+		}
+    	
+    }
+    
+    public List<TradeMessage> listMessages()
+    {
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();	    
+	    Query query = new Query("TradeMessage").addSort("crtDate", Query.SortDirection.DESCENDING);
+	    List entities = datastore.prepare(query).asList(FetchOptions.Builder.withLimit( 100 ));
+	    List<TradeMessage> tradeMessages = new ArrayList<TradeMessage>();
+	    if( entities != null && entities.size() > 0 ) {
+	    	for( Entity entity: entities ) {
+	    		TradeMessage tradeMessage = new TradeMessage();
+	    		tradeMessage.setAmountBuy((Double)entity.getProperty("amountBuy"));
+	    	}
+	    }
+	    return tradeMessages;
+    }
+    
+   
+    
+}

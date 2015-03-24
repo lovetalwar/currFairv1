@@ -1,0 +1,29 @@
+<html>
+<head>
+<script>
+function consumeMessage(){
+$.ajax({
+    type: 'POST', 
+    url: '/messages',
+    dataType: 'JSON',
+    data: $("#id").val(),
+    success: function(data) {
+
+    },
+    error: function(data) {
+        alert('fail');
+    }
+
+});
+}
+</script>
+</head>
+<body>
+
+	<input type="textarea" id="in" name="inp">
+	</input>
+	<input type="button" value="action" onclick="consumeMessage();"/>
+
+</body>
+
+</html>

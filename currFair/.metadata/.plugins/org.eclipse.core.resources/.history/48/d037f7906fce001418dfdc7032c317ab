@@ -1,0 +1,114 @@
+
+package com.londonhydro.api.service.impl;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.WebApplicationException;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.message.BasicNameValuePair;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.name.Named;
+import com.londonhydro.api.auth.ApiTransaction;
+import com.londonhydro.api.auth.UserContextHolder;
+import com.londonhydro.api.inject.BrokerConnectionProvider;
+import com.londonhydro.api.manager.AuditManager;
+import com.londonhydro.api.manager.ServerQueueManager;
+import com.londonhydro.model.Audit;
+import com.londonhydro.model.ServerQueue;
+import com.londonhydro.model.Transactions;
+import com.londonhydro.model.UserAccount;
+import com.londonhydro.utils.exception.impl.CustomWebApplicationException;
+import com.londonhydro.utils.log.Log;
+import com.londonhydro.utils.toolbox.PasswordValidator;
+
+
+/**
+ * Transacction and context provider.
+ * 
+ * @author Juan Pablo Francisconi (jpfrancisconi@affsys.com)
+ */
+public abstract class AbstractServiceImpl
+{
+    @Inject @Named("transaction")
+    protected com.google.inject.Provider<ApiTransaction> transactionProvider;
+    
+    @Inject
+    @Named("londonhydro.api.persistSAPUpdates")
+    protected String PERSIST_SAP_UPDATES;
+    
+    @Inject @Named("londonhydro.api.password.minLength")
+    protected String minLength;
+    @Inject @Named("londonhydro.api.password.maxLength")
+    protected String maxLength;
+    @Inject @Named("londonhydro.api.password.mixedCase")
+    protected String mixedCase;
+    @Inject @Named("londonhydro.api.password.specialCharacter")
+    protected String specialCharacter;
+    @Inject @Named("londonhydro.api.password.specialCharacters")
+    protected String specialCharacters;
+    @Inject @Named("com.londonhydro.lh.broker.url")
+    String LH_BROKER;
+    @Inject @Named("com.londonhydro.broker.address.cache")
+    protected String enableBrokerAddressCache;
+    @Inject @Named("com.londonhydro.broker.notification.updateAddress.service.url")
+    protected String updateAddressUrl;
+    
+    @Inject @Named("londonhydro.api.serverHost")
+    protected String serverHosts;
+    
+
+    @Inject @Named("userContextHolder")
+    protected Provider<UserContextHolder> contextProvider;
+    
+   
+    
+    protected boolean validHost(String url) throws WebApplicationException
+    {
+      
+        String hostName= null;
+        try
+        {
+            URI uri= new URI(url);
+            String domain = uri.getHost();
+            hostName= domain.startsWith("www.") ? domain.substring(4) : domain;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+        String[] serverHostNames = serverHosts.split(",");
+        for (String string : serverHostNames)
+        {
+            if(string.equalsIgnoreCase(hostName))
+                return true;
+        }
+        return false;
+    }
+    
+    protected Long resolveMe(String pathId, Long loggedId)
+    {
+        if (pathId.toLowerCase().equals("me"))
+            return loggedId;
+        if(NumberUtils.isNumber(pathId))
+            return Long.parseLong(pathId);
+        else
+            return null;
+    }
+    
+    protected String resolveMe(String pathId, String loggedId)
+    {
+        if (pathId.toLowerCase().equals("me"))
+            return loggedId;
+        return pathId;
+    }
+    
+   
+    
+
+}

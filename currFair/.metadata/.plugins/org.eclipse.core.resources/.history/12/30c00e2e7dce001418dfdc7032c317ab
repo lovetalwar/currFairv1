@@ -1,0 +1,134 @@
+
+
+package com.example.currFair.api.interceptors;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.ext.Provider;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.log4j.Logger;
+import org.jboss.resteasy.annotations.interception.Precedence;
+import org.jboss.resteasy.annotations.interception.ServerInterceptor;
+import org.jboss.resteasy.core.ResourceMethod;
+import org.jboss.resteasy.core.ServerResponse;
+import org.jboss.resteasy.spi.Failure;
+import org.jboss.resteasy.spi.HttpRequest;
+import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
+
+import com.example.currFair.api.util.ApiTransaction;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+import com.londonhydro.api.auth.PagingContextHolder;
+import com.londonhydro.utils.exception.impl.CustomWebApplicationException;
+import com.londonhydro.utils.log.Log;
+import com.londonhydro.utils.response.attr.PagingAttribute;
+import com.londonhydro.utils.response.logger.RequestLogger;
+
+/**
+ * This class is in charge of check the authorization token and see if the user
+ * is able to make a request. It also adds the debug object running into a
+ * thread local variable if the debug option is enabled within the HTTP header.
+ * It also hides the user_id / client_id information (for every request) so the
+ * final method doesn't have to worry about that (manage them).
+ */
+@Provider
+@ServerInterceptor
+@Precedence(value = "HEADER_DECORATOR")
+public class RequestInterceptor implements PreProcessInterceptor {
+
+	static final Logger logger = Logger.getLogger(RequestInterceptor.class);
+
+	public ServerResponse preProcess(HttpRequest request, ResourceMethod method) throws Failure, WebApplicationException {
+		ServerResponse response = null;
+		Long requestId = RequestLogger.getInstance().getLogger().getRequestId();
+		logger.info("Request Interceptor: Processing request #%d", requestId);
+		
+		List<NameValuePair> params = URLEncodedUtils.parse(request.getUri().getRequestUri(), "UTF-8");
+
+		// Handle paging parameters.
+		processPaging(request, params, requestId);
+		return response;
+	}
+
+	/**
+	 * Handle Paging Parameters
+	 * 
+	 * @param params
+	 */
+	private void processPaging(HttpRequest request, List<NameValuePair> params, Long requestId) throws WebApplicationException {
+
+		// Grab session header and pull out all common parameters.
+		String page = null;
+		String sortBy = null;
+		String dir = null;
+		String top = null;
+		String pageSize = null;
+		String count = null;
+		PagingAttribute attr = null;
+		
+		
+		for (NameValuePair nameValuePair : params) {
+
+			if (nameValuePair.getName().equals("page"))
+				page = nameValuePair.getValue();
+			else if (nameValuePair.getName().equals("top"))
+				top = nameValuePair.getValue();
+			else if (nameValuePair.getName().equals("pageSize"))
+				pageSize = nameValuePair.getValue();
+			else if (nameValuePair.getName().equals("sortBy"))
+				sortBy = nameValuePair.getValue();
+			else if (nameValuePair.getName().equals("dir"))
+				dir = nameValuePair.getValue();
+			else if (nameValuePair.getName().equals("count"))
+                count = nameValuePair.getValue();
+		}
+
+		if (page != null) {
+			attr = new PagingAttribute();
+			int value = new Integer(page).intValue();
+			if (value == 0)
+				++value; // page=0 doesn't exist.
+			attr.setPageNumber(value);
+			attr.setActive(true);
+
+			if (pageSize != null && !pageSize.isEmpty()) {
+				attr.setPageSize(new Integer(pageSize));
+			}
+
+			
+			if(count!= null && !Boolean.parseBoolean(count)){
+			    attr.setType(PagingAttribute.PAGINABLE);
+			}else{
+			    attr.setType(PagingAttribute.COUNT);
+			}
+			
+			if (sortBy != null && !sortBy.isEmpty()) {
+				attr.setSortBy(sortBy);
+				if (dir != null) {
+
+					if (dir.toLowerCase().equals("asc") || dir.toLowerCase().equals("desc")) {
+						attr.setDir(dir);
+					} else {
+						logger.info("Request #%s rejected; dir parameter %s is not recognized", requestId, dir);
+						throw new CustomWebApplicationException(HttpURLConnection.HTTP_BAD_REQUEST, "Request #" + requestId + " rejected; dir parameter " + dir + " is not recognized");
+					}
+				}
+			}
+		
+		} else if (top != null) {
+			attr = new PagingAttribute();
+			int value = new Integer(top).intValue();
+			attr.setTop(value);
+			attr.setType(PagingAttribute.PAGINABLE);
+		}
+		
+		if(attr!=null){
+		    PagingContextHolder pagingContextHolder = new PagingContextHolder(attr);
+	        request.setAttribute(Key.get(PagingContextHolder.class, Names.named("pagingContextHolder")).toString(), pagingContextHolder);
+	    }
+	}
+}

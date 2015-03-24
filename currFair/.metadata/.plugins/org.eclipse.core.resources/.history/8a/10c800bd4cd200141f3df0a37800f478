@@ -1,0 +1,69 @@
+
+package com.example.currFair.api.manager.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.example.currFair.api.dao.MessageDAO;
+import com.example.currFair.api.manager.MessageManager;
+import com.example.currFair.api.model.MessageLocation;
+import com.example.currFair.api.model.TradeMessage;
+import com.google.inject.Inject;
+
+
+public class MessageManagerImpl extends AbstractManagerImpl implements MessageManager
+{
+
+	@Inject
+	MessageDAO messageDAO;
+	
+    public synchronized Map<String, List<TradeMessage>> processMessages(List<TradeMessage> tradeMessages)
+    {
+    	messageDAO.saveMessages(tradeMessages);
+    	return createReport();
+    }
+    
+    private Map<String, List<TradeMessage>> createReport()
+    {
+    	List<TradeMessage> fullList = messageDAO.listMessages();
+    	Map<String, List<TradeMessage>>  map = new java.util.HashMap<String, List<TradeMessage>>();
+    	List<TradeMessage> newList;
+    	for (TradeMessage tradeMessage : fullList)
+    	{
+    		String key =tradeMessage.getCurrencyFrom()+"-"+tradeMessage.getCurrencyTo();
+    		if(map.get(key) == null)
+    		{
+    			 newList = new ArrayList<TradeMessage>();
+    			newList.add(tradeMessage);
+    			map.put(key, newList);
+    		}else{
+    			newList =map.get(key);
+    			newList.add(tradeMessage);
+    		}
+		}
+    	return map;
+    }
+    
+    public  Map<String, List<TradeMessage>> listMessages(){
+    	 return createReport();
+    	
+    }
+   
+    public  List<TradeMessage> listMessagesByUserId(String userId)
+    {
+    	List<TradeMessage> tradeMessages = new ArrayList<TradeMessage>();
+    	List<TradeMessage> fullList = messageDAO.listMessages();
+    	for (TradeMessage tradeMessage : fullList) {
+			if(tradeMessage.getUserId().equalsIgnoreCase(userId))
+				tradeMessages.add(tradeMessage);
+		}
+    	return tradeMessages;
+    }
+    
+    public  List<MessageLocation> listMessagesLocations(){
+   	 return createReport();
+   	
+   }
+    
+}

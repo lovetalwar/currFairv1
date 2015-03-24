@@ -1,0 +1,133 @@
+
+package com.example.currFair.api.util;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
+import com.example.currFair.api.model.UserAccount;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+
+@RequestScoped
+public class ApiTransaction {
+	static final Logger logger = Logger.getLogger(ApiTransaction.class);
+
+	private UserAccount userAccount;
+	private Long requestId; // Request ID
+	private Long start; // Time of start of transaction
+	private String name; // Name of transaction
+
+	@Inject
+	public ApiTransaction(UserAccount userAccount) {
+		this.userAccount = userAccount;
+	}
+
+	public ApiTransaction() {}
+
+	public ApiTransaction init(String name) {
+		return begin(name, null);
+	}
+
+	public ApiTransaction init(String name, String description, Object... objects) {
+		return begin(name, description, objects);
+	}
+
+	public ApiTransaction begin(String name, String description, Object... objects) {
+		this.start = System.currentTimeMillis();
+		return this;
+	}
+
+	public Response complete(Response response) {
+		return this.complete(response, null);
+	}
+
+	public Response complete(Response response, String description, Object... objects) {
+		
+		return response;
+	}
+
+	public WebApplicationException error(WebApplicationException error) {
+		return this.error(error, null);
+	}
+
+	public WebApplicationException error(WebApplicationException error, String description, Object... objects) {
+		if (logger.isDebugEnabled() && start != null)
+			logger.debug("Transaction end #%d: %s;ms=%d;error=%s %s", RequestLogger.getInstance().getRequestId(), name, (System.currentTimeMillis() - start), error.getMessage(), (description != null) ? String.format(description, objects) : "");
+
+		return error;
+	}
+
+	public static void runtimeError(Exception e) {
+		RequestLogger requestLogger = RequestLogger.getInstance();
+		Long requestId = (requestLogger != null) ? requestLogger.getRequestId() : null;
+
+		if (requestId != null) {
+			logger.error("Transaction error #%d: %s", requestId, ExceptionUtils.getSingleLine(e));
+		}
+	}
+
+	public void log(Level level, Exception e, String message, Object... objects) {
+		StringWriter sw = null;
+		try {
+			log(level, message, objects);
+			sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String stacktrace = sw.toString();
+			logger.error(String.format("Transaction %d stacktrace: %s", RequestLogger.getInstance().getRequestId(), stacktrace));
+		} finally {
+			IOUtils.closeQuietly(sw);
+		}
+	}
+
+	public void log(Level level, String message, Object... objects) {
+		message = String.format("Transaction %d log: %s", requestId, message);
+
+		if (level.equals(Level.INFO)) {
+			logger.info(message, objects);
+		} else if (level.equals(Level.DEBUG)) {
+			logger.debug(message, objects);
+		} else if (level.equals(Level.ERROR)) {
+			logger.error(message, objects);
+		} else if (level.equals(Level.WARN)) {
+			logger.warn(message, objects);
+		} else if (level.equals(Level.FATAL)) {
+			logger.fatal(message, objects);
+		} else if (level.equals(Level.TRACE)) {
+			logger.trace(message, objects);
+		} else {
+			logger.info(message, objects);
+		}
+	}
+	
+	public void logINFO(String message, Object... objects) {
+		log(Level.INFO, message, objects);
+	}
+	
+	public void logDEBUG(String message, Object... objects) {
+		log(Level.DEBUG, message, objects);
+	}
+	
+	public void logERROR(String message, Object... objects) {
+		log(Level.ERROR, message, objects);
+	}
+	
+	public void logWARN(String message, Object... objects) {
+		log(Level.WARN, message, objects);
+	}
+	
+	public void logFATAL(String message, Object... objects) {
+		log(Level.FATAL, message, objects);
+	}
+	
+	public void logTRACE(String message, Object... objects) {
+		log(Level.TRACE, message, objects);
+	}
+	
+}

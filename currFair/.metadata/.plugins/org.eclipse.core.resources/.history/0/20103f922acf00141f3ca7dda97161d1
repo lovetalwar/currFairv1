@@ -1,0 +1,108 @@
+/*****************************************************************************
+ *                                                                           *
+ *                       Copyright (c) 2012-2013 London Hydro                *
+ *                            ALL RIGHTS RESERVED                            *
+ *                                                                           *
+ *****************************************************************************
+ *
+ *  File Name:  DiscoveryServiceImpl.java
+ *
+ *  Facility:   London Hydro API
+ *
+ *  Author:     Juan Pablo Francisconi, Affinity Systems
+ *
+ *  Revision History
+ *
+ *  Date        Author              Description
+ *  -------     ------------------  -----------------------------------------
+ *  6Mar13     Juan Pablo Francisconi  Original version
+ */
+package com.example.currFair.api.service.impl;
+
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriInfo;
+
+import org.jboss.resteasy.core.ResourceMethodRegistry;
+import org.jboss.resteasy.spi.Registry;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
+import com.example.currFair.api.service.DiscoverService;
+import com.example.currFair.api.util.ApiTransaction;
+
+/**
+ * Discovery Service Implementation.
+ * 
+ * A list of all APIs that are supported by the APIs Discovery Service.
+ * 
+ * The APIs Discovery Service provides both public and private methods therefore 
+ * you will require authentication. 
+ * 
+ * @author Juan Pablo Francisconi (jpfrancisconi@affsys.com)
+ */
+public class DiscoveryServiceImpl extends AbstractServiceImpl implements DiscoverService
+{
+    /**
+     * List of APIs available.
+     * 
+     * @return JSON structure.
+     * @throws WebApplicationException
+     */
+    public Response listApis() throws WebApplicationException
+    {
+        ApiTransaction transaction = transactionProvider.get().init("listApis");
+        UriInfo uriInfo = ResteasyProviderFactory.getContextData(UriInfo.class);
+        ResourceMethodRegistry registry = (ResourceMethodRegistry) ResteasyProviderFactory.getContextData(Registry.class);
+        List<Method> methods = LinksBuilder.getServiceMethods(registry);
+        Map<String, Object> result = new HashMap<String, Object>();
+        
+        for (Iterator<?> iterator = methods.iterator(); iterator.hasNext();)
+        {
+            Method method = (Method)iterator.next();
+            result.put(method.getName(), DiscoveryUtil.discover(method, uriInfo));
+        }
+        ResponseBuilder builder = Response.ok(result);
+        return transaction.complete(builder.build());     
+    }
+
+    /**
+     * Filter APIs available by api_name
+     * 
+     * @param apiName
+     * @return JSON structure
+     * @throws WebApplicationException
+     */
+    public Response getApiInfo(String apiName) throws WebApplicationException
+    {
+        ApiTransaction transaction = transactionProvider.get().init("getApiInfo","apiName=%s",apiName);
+        UriInfo uriInfo = ResteasyProviderFactory.getContextData(UriInfo.class);
+        ResourceMethodRegistry registry = (ResourceMethodRegistry) ResteasyProviderFactory.getContextData(Registry.class);
+        List<Method> methods = LinksBuilder.getServiceMethods(registry);
+        Map<String, Object> result = new HashMap<String, Object>();
+        
+        for (Iterator<?> iterator = methods.iterator(); iterator.hasNext();)
+        {
+            Method method = (Method)iterator.next();
+            if(method.getName().equals(apiName))
+            {
+                result.put(method.getName(), DiscoveryUtil.discover(method, uriInfo));
+                break;
+            }
+        }
+        
+       
+        
+        ResponseBuilder builder = Response.ok(result);
+        return transaction.complete(builder.build());     
+
+    }
+    
+}

@@ -1,0 +1,41 @@
+
+
+package com.londonhydro.api.auth;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import com.londonhydro.model.UserAccount;
+import com.londonhydro.utils.response.attr.CacheConfig;
+
+/**
+ * Small object to manage the user authentication process 
+ */
+@RequestScoped
+public class UserContextHolder
+{
+   private UserAccount userAccount;
+   private CacheConfig cacheConfig;
+    
+   @Inject
+   public UserContextHolder(UserAccount userAccount)
+   {
+       super();
+       this.userAccount = userAccount;
+       this.cacheConfig = new CacheConfig(false);
+   }
+
+   public UserAccount getUserAccount()
+   {
+       return userAccount;
+   }
+   
+   public CacheConfig getCacheConfig()
+   {
+       return cacheConfig;
+   }
+   
+   public void setCacheConfig(CacheConfig cacheConfig)
+   {
+       this.cacheConfig = cacheConfig;
+   }
+}

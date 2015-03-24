@@ -1,0 +1,216 @@
+/*****************************************************************************
+ *                                                                           *
+ *                       Copyright (c) 2012-2013 London Hydro                *
+ *                            ALL RIGHTS RESERVED                            *
+ *                                                                           *
+ *****************************************************************************
+ *
+ *  File Name:  AbstractServiceImpl.java
+ *
+ *  Facility:   London Hydro API
+ *
+ *  Author:     Juan Pablo Francisconi, Affinity Systems
+ *
+ *  Revision History
+ *
+ *  Date        Author              Description
+ *  -------     ------------------  -----------------------------------------
+ *  10Jan13     Juan Pablo Francisconi 	Original version
+ */
+
+package com.londonhydro.api.service.impl;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.WebApplicationException;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.message.BasicNameValuePair;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.name.Named;
+import com.londonhydro.api.auth.ApiTransaction;
+import com.londonhydro.api.auth.UserContextHolder;
+import com.londonhydro.api.inject.BrokerConnectionProvider;
+import com.londonhydro.api.manager.AuditManager;
+import com.londonhydro.api.manager.ServerQueueManager;
+import com.londonhydro.model.Audit;
+import com.londonhydro.model.ServerQueue;
+import com.londonhydro.model.Transactions;
+import com.londonhydro.model.UserAccount;
+import com.londonhydro.utils.exception.impl.CustomWebApplicationException;
+import com.londonhydro.utils.log.Log;
+import com.londonhydro.utils.toolbox.PasswordValidator;
+
+
+/**
+ * Transacction and context provider.
+ * 
+ * @author Juan Pablo Francisconi (jpfrancisconi@affsys.com)
+ */
+public abstract class AbstractServiceImpl
+{
+    @Inject @Named("transaction")
+    protected com.google.inject.Provider<ApiTransaction> transactionProvider;
+    
+    @Inject
+    @Named("londonhydro.api.persistSAPUpdates")
+    protected String PERSIST_SAP_UPDATES;
+    
+    @Inject @Named("londonhydro.api.password.minLength")
+    protected String minLength;
+    @Inject @Named("londonhydro.api.password.maxLength")
+    protected String maxLength;
+    @Inject @Named("londonhydro.api.password.mixedCase")
+    protected String mixedCase;
+    @Inject @Named("londonhydro.api.password.specialCharacter")
+    protected String specialCharacter;
+    @Inject @Named("londonhydro.api.password.specialCharacters")
+    protected String specialCharacters;
+    @Inject @Named("com.londonhydro.lh.broker.url")
+    String LH_BROKER;
+    @Inject @Named("com.londonhydro.broker.address.cache")
+    protected String enableBrokerAddressCache;
+    @Inject @Named("com.londonhydro.broker.notification.updateAddress.service.url")
+    protected String updateAddressUrl;
+    
+    @Inject @Named("londonhydro.api.serverHost")
+    protected String serverHosts;
+    
+
+    @Inject @Named("userContextHolder")
+    protected Provider<UserContextHolder> contextProvider;
+    
+    @Inject
+    protected BrokerConnectionProvider brokerConnectionProvider;
+    
+    @Inject
+    private ServerQueueManager serverQueueManager;
+    
+    @Inject
+    private AuditManager auditManager;
+    
+    protected boolean validHost(String url) throws WebApplicationException
+    {
+      
+        String hostName= null;
+        try
+        {
+            URI uri= new URI(url);
+            String domain = uri.getHost();
+            hostName= domain.startsWith("www.") ? domain.substring(4) : domain;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+        String[] serverHostNames = serverHosts.split(",");
+        for (String string : serverHostNames)
+        {
+            if(string.equalsIgnoreCase(hostName))
+                return true;
+        }
+        return false;
+    }
+    
+    protected Long resolveMe(String pathId, Long loggedId)
+    {
+        if (pathId.toLowerCase().equals("me"))
+            return loggedId;
+        if(NumberUtils.isNumber(pathId))
+            return Long.parseLong(pathId);
+        else
+            return null;
+    }
+    
+    protected String resolveMe(String pathId, String loggedId)
+    {
+        if (pathId.toLowerCase().equals("me"))
+            return loggedId;
+        return pathId;
+    }
+    
+    protected void saveServerQueue(String actionType, String table, String column, String oldValue, String newValue, String accountId , String description, boolean encryptValues) throws WebApplicationException
+    {
+        Transactions transaction = new Transactions();
+        transaction.setDescription(description);
+        serverQueueManager.nextTransaction(transaction);
+        List<ServerQueue> serverQueues = new ArrayList<ServerQueue>();
+        UserAccount userLogged = contextProvider.get().getUserAccount();
+        ServerQueue serverQueue = new ServerQueue(actionType, table, column, oldValue, newValue, accountId, userLogged.getId(),transaction.getId(), encryptValues);
+        
+        
+        serverQueues.add(serverQueue);
+        serverQueueManager.saveServerQueue(serverQueues);
+    }
+    
+    protected void saveServerQueue(String actionType, String table, String column, String oldValue, String newValue, String accountId , String description) throws WebApplicationException
+    {
+        saveServerQueue(actionType, table, column, oldValue, newValue, accountId, description, false);
+    }
+    
+    protected void saveServerQueues(List<ServerQueue> serverQueues ) throws WebApplicationException
+    {
+        serverQueueManager.saveServerQueue(serverQueues);
+    }
+    
+    protected void saveAuditRecord(String action,Long loginId, String customerId, String accountId, String serviceId, String prevValue, String newValue, Long delegateId, String description) throws WebApplicationException
+    {
+        List<Audit> audits = new ArrayList<Audit>();
+        Audit audit = new Audit (loginId, action, customerId, accountId, serviceId, prevValue, newValue, delegateId, description);
+        audits.add(audit);
+        auditManager.saveAuditRecords(audits);
+        
+    }
+    
+    protected void saveAuditRecord(String action,Long loginId, String customerId, String accountId, String serviceId, String prevValue, String newValue, Long delegateId, String description, boolean recentActivity) throws WebApplicationException
+    {
+        List<Audit> audits = new ArrayList<Audit>();
+        Audit audit = new Audit (loginId, action, customerId, accountId, serviceId, prevValue, newValue, delegateId, description, recentActivity);
+        audits.add(audit);
+        auditManager.saveAuditRecords(audits);
+        
+    }
+    
+    protected void saveAuditRecords(List<Audit> audits ) throws WebApplicationException
+    {
+        auditManager.saveAuditRecords(audits);
+    }
+    
+    protected boolean persistSAPUpdates()
+    {
+    	return Boolean.parseBoolean(PERSIST_SAP_UPDATES);
+    }
+    
+    protected boolean validatePassword(String password)
+    {
+        return PasswordValidator.validate(password, minLength, maxLength,
+            Boolean.parseBoolean(mixedCase),
+            Boolean.parseBoolean(specialCharacter), specialCharacters);
+    }
+    
+    protected byte[] invokeBrokerHttpGET(String contentPath) throws CustomWebApplicationException
+    {
+       return brokerConnectionProvider.invokeBrokerGET(contentPath);
+    }
+    
+    protected void updateNotificationAddressCache(String businessPartnerId, String notificationType, String notificationMethod, String address)
+    {
+        if (!"true".equalsIgnoreCase(enableBrokerAddressCache))
+        {
+            Log.API.debug("Broker address cache is disabled");
+            return;
+        }    
+        List<BasicNameValuePair> formParameters = new ArrayList<BasicNameValuePair>();
+        formParameters.add(new BasicNameValuePair("businessPartnerId", businessPartnerId));
+        formParameters.add(new BasicNameValuePair("notificationType", notificationType));
+        formParameters.add(new BasicNameValuePair("notificationMethod", notificationMethod));
+        formParameters.add(new BasicNameValuePair("address", address));
+        brokerConnectionProvider.invokeBrokerPUT(updateAddressUrl, formParameters);
+    }
+
+}
