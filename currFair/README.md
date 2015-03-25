@@ -7,14 +7,14 @@ A high representation of the main components involved in this project is:
 •	Google Data Store ,Use a managed, NoSQL, schemaless database for storing non-relational data. Cloud Datastore automatically scales as you need it and supports transactions as well as robust, SQL-like queries.
 
 Stack:
-Google App Engine
-REST API
-Google Guice (Dependency Injection)
-Google Data Store
-Jackson
-JSP
-Jquery
-Ajax 
+Google App Engine,
+REST API,
+Google Guice (Dependency Injection),
+Google Data Store,
+Jackson,
+JSP,
+Jquery,
+Ajax, 
 Maven
 
 Functionality:
