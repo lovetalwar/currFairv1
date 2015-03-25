@@ -8,7 +8,6 @@ import com.google.inject.name.Named;
 /**
  * Abstract class for DAOs to manage the user context holder.
  * 
- * @author Juan Pablo Francisconi (jpfrancisconi@affsys.com)
  */
 public abstract class AbstractDAO
 {

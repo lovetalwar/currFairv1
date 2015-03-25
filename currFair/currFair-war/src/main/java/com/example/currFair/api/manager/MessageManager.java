@@ -14,7 +14,6 @@ public interface MessageManager
 
     public  Map<String, List<TradeMessage>> processMessages(List<TradeMessage> tradeMessages) throws Exception;
     
-    
     public  Map<String, List<TradeMessage>> listMessages();
     
     public  List<TradeMessage> listMessagesByUserId(String userId);

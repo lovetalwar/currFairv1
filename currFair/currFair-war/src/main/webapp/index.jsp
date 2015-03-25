@@ -12,13 +12,14 @@ $.ajax({
     data: $("#input").val(),
     success: function(data) {
     	createReport(data);
+    	loadMap();
     },
     error: function(data) {
         alert('fail');
     }
 
 });
-loadMap();
+
 }
 $(document).ready(function(){
 $.ajax({
@@ -36,7 +37,7 @@ loadMap();
 });
 
 function createReport(data){
-	var html="<b>Reports</b><br>";
+	var html="<div class='header'>Reports</div><br>";
 	html= html+"<table><tr><td>UserId</td><td>CurrencyFrom</td>+<td>CurrencyTo</td>+<td>AmountSell</td>+<td>AmountBuy</td>+<td>Rate</td>+<td>TimePlaced</td>"
 	+ "<td>OriCountry</td>";
 	$.each(data, function(k,v) {
@@ -96,11 +97,12 @@ function loadMap(){
 	   
 	    success: function(data) {
 	    	map = new google.maps.Map(document.getElementById('map'), {
-	    		   zoom: 11,
-	    		   center: new google.maps.LatLng(43.7231608,-79.3970677),
+	    		zoom: 2,
+	            center: new google.maps.LatLng(43.7231608,-79.3970677),
 	    		   mapTypeId: google.maps.MapTypeId.ROADMAP
 	    		});
 	    	var marker, i;
+	    	 var bounds = new google.maps.LatLngBounds();
 	    	gmarkers = [];
 	    		  $.each(data, function(k, v) {
 	    		    	var key = k;
@@ -109,9 +111,11 @@ function loadMap(){
 	    		    	       position: new google.maps.LatLng(value.lat, value.lng),
 	    		    	       map: map
 	    		    	   });
+	    		    	 bounds.extend(marker.position);
 	    		    
 	    		  });
-	    		  
+	    		  map.fitBounds(bounds);
+	  				map.panToBounds(bounds); 
 	    	
 	    },
 	    error: function(data) {
@@ -130,6 +134,13 @@ table td {
     display: inline-block;
     white-space: nowrap;
 }
+.header {
+    height:20px;
+    background:#F0F0F0;
+    border:1px solid #CCC;
+    margin:0px auto;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -141,16 +152,22 @@ table td {
 		</textarea>
 		<input type="button" value="SUBMIT" onclick="consumeMessage();"/>
 	</div>
-	<div id="report">
+	<div id="report" style="width: 900px; height: 500px;float:left;margin-top:10px;overflow:scroll;">
 	</div>
-	<div id="search">
+	<div class='header' style="width: 900px;float:right;margin-top:10px;">Geographical view of Messages Originated</div>
+	</div>
+	<div id="map" style="width: 900px; height: 500px;float:right;margin-top:10px;">
+	
+	</div>
+	<div id="search" style="width: 900px; height: 500px;float:left;margin-top:10px;overflow:scroll;">
 	<bold>Search Messages by userid:</bold>
 	<input type="text" name="searchString" id="searchString" ></input>
 	<input type="button" value="SEARCH" onclick="searchReports();"/>
+		<div id="searchResults" >
 	</div>
-	<div id="searchResults">
 	</div>
-<div id="map" style="width: 700px; height: 500px;float:right;margin-top:10px;"></div>
+	
+	
 </body>
 
 </html>

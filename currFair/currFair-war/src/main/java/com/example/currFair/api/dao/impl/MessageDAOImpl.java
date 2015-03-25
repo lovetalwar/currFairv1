@@ -23,7 +23,7 @@ public class MessageDAOImpl extends AbstractDAO implements MessageDAO
     {
     	
     	for (TradeMessage tradeMessage : tradeMessages) {
-    		//Key messageKey = KeyFactory.createKey( EntityKey,);	    	    
+    			    
     	    Entity messageEntity = new Entity("TradeMessage");
     	    messageEntity.setProperty("userId", tradeMessage.getUserId());
     	    messageEntity.setProperty("amountBuy", tradeMessage.getAmountBuy());
@@ -87,8 +87,7 @@ public class MessageDAOImpl extends AbstractDAO implements MessageDAO
    
     public void  saveMessagesLocations(List<MessageLocation> messageLocations)
     {
-    	for (MessageLocation messageLocation : messageLocations) {
-    		//Key messageKey = KeyFactory.createKey( EntityKey,);	    	    
+    	for (MessageLocation messageLocation : messageLocations) {	    
     	    Entity locationEntity = new Entity("MessageLocation");
     	    locationEntity.setProperty("lat", messageLocation.getLat());
     	    locationEntity.setProperty("lng", messageLocation.getLng());
