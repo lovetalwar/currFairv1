@@ -18,7 +18,7 @@ Ajax
 Maven
 
 Functionality:
-1. You can post the multiple messages at once using end point http://eloquent-falcon-88915.appspot.com//api/messages/consume which needs json structure. The format should be as follows
+1. You can post the multiple messages at once using end point http://eloquent-falcon-88915.appspot.com/api/messages/consume which needs json structure. The format should be as follows
 [{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "INR", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"},{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "GBP", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"}]
  To test the endpoint there are multiple ways using Google Advanced Rest Client. chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo/RestClient.html
  or
@@ -26,5 +26,6 @@ Functionality:
  2. In the Architecture ORM layer is missing ( not much time) so I have used Google Data Store (NoSql) to store the data.
  3. Doing some processing of data like grouping of currencies , search the messages by userId etc
  4. Also using Google Geocoding Api to represent the geographical locations on the map where messages originated.
+ http://eloquent-falcon-88915.appspot.com/
 
 
