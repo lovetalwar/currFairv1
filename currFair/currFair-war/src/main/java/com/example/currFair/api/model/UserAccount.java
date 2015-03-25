@@ -12,15 +12,7 @@ public class UserAccount {
 	private String lastName;
 	private String email;
 	private String phoneNo;
-	public UserAccount(){
-		UserAccount userAccount = new UserAccount();
-		userAccount.setUserId("Test User");
-		userAccount.setFirstName("Test");
-		userAccount.setLastName("User");
-		userAccount.setEmail("testUser@currFair.com");
-		userAccount.setPhoneNo("123456");
-		userAccounts.add(userAccount);
-	}
+	
 	public String getUserId() {
 		return userId;
 	}

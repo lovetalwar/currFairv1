@@ -145,9 +145,11 @@ table td {
 </head>
 <body>
 	<div id="consume">
-		<p>Please enter the json in the box in the format below
-		(		[{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "INR", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"},{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "GBP", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"}])
-		)</p>
+		<p>Please enter the json in the box in the format below<br/>
+				
+		[{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "INR", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"},{"userId": "134256", "currencyFrom": "EUR", "currencyTo": "GBP", "amountSell": 1000, "amountBuy": 747.10, "rate": 0.7471, "timePlaced" : "24-JAN-15 10:27:44", "originatingCountry" : "FR"}]
+		
+		</p>
 		<textarea rows="20" cols="100" id="input" name="inp">
 		</textarea>
 		<input type="button" value="SUBMIT" onclick="consumeMessage();"/>
